@@ -1,0 +1,2 @@
+person_id from myschema.person#1
+order_person_pk from myschema.person#1@pk

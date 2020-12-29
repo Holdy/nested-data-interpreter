@@ -1,7 +1,10 @@
 {
   "name": "nested-data-interpreter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
 }

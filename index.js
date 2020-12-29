@@ -8,6 +8,7 @@ const record_wrapper = require('./lib/record_wrapper');
 
 let settings;
 
+
 function setup(menu_directory, field_defaults_directory) {
     settings = {menu_directory, field_defaults_directory};
 }
@@ -15,7 +16,8 @@ function setup(menu_directory, field_defaults_directory) {
 function prepare (menu_choices) {
     const result_records = [];
 
-    menu_choices.forEach(choice => {
+    menu_choices.forEach(raw_choice => {
+        const choice = raw_choice.replace(':','/').replace('\\','/');
         process_directory(path.join(settings.menu_directory, choice), null, result_records);
     });
 
@@ -102,9 +104,6 @@ function process_directory(directory_name, table_name, result_records) {
         }
     });
 
-
-
-    let v = 1;
 }
 
 function interpret_record_line(source_file, line) {
@@ -134,13 +133,17 @@ function interpret_record_line(source_file, line) {
         } else {
             // table name and 
             // should be of the form {table_name}#{record_reference}
-            const parts = source.split('#');
-            if (parts.length != 2) {
-                throw new Error(`Expected table-name#record-reference but got "${line} from ${source_file}"`)
+            const parts = source.split(/[#@]/);
+
+            if (parts.length == 2) {
+                parts.push(name);
+            }
+            if (parts.length != 3) {
+                throw new Error(`Expected table-name#record-reference[@field] but got "${line} from ${source_file}"`)
             }
             return {
                 name: name,
-                value_wrapper:new value_wrapper(null, parts[0], parts[1])
+                value_wrapper:new value_wrapper(null, parts[0], parts[1], parts[2])
             }
         }
 
