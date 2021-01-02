@@ -26,7 +26,7 @@ function prepare (menu_choices) {
 
 function find_by_table_name_and_record_reference(result_records, table_name, record_reference) {
     // search backwards
-    for(let i = record_reference.length - 1; i >=0; i--) {
+    for(let i = result_records.length - 1; i >=0; i--) {
         const test_record = result_records[i];
         if (test_record.table_name === table_name && test_record.record_reference === record_reference) {
             return test_record;
@@ -79,7 +79,7 @@ function process_directory(directory_name, table_name, result_records) {
 
             // check all references are known
             item.field_definitions.forEach(field_definition => {
-                if (field_definition.value_wrapper.lookup_table_name) {
+                if (field_definition.value_wrapper.lookup_table_name && !field_definition.value_wrapper.lookup_name_value) {
                     const referenced_record = find_by_table_name_and_record_reference(
                                                 result_records,
                                                 field_definition.value_wrapper.lookup_table_name, 
@@ -115,7 +115,21 @@ function interpret_record_line(source_file, line) {
 
         }
     } else {
-        const parts = line.split(' ');
+        const parts = line.replace(/ +/g, ' ').split(' ');
+
+        if (parts.length > 4 && parts[1] == 'where' && parts[3] == 'is') {
+            if (parts[0].indexOf('_id') != -1) {
+                const ofIndex = line.indexOf(' is ');
+                const name_value= line.substring(ofIndex + 4).trim();
+                return {
+                    name: parts[0],
+                    value_wrapper: build_id_resolution_from_name(parts[0], parts[2], name_value, line, source_file)
+                }
+            } else {
+                throw new Error(`Column must follow the pattern *_id to use 'where x =' - "${line}" from ${source_file}`);
+            }
+        }
+
         if (parts.length != 3 || parts[1].toLowerCase() != 'from') {
             throw new Error(`Line not understood: "${line}" from ${source_file}`);
         }
@@ -148,6 +162,18 @@ function interpret_record_line(source_file, line) {
         }
 
     }
+}
+
+function build_id_resolution_from_name(id_column_name,  name_column, name_value, line, source_file) {
+
+    const result = new value_wrapper();
+
+    result.lookup_table_name = id_column_name.replace(/_id$/, '');
+    result.lookup_record_field = id_column_name;
+    result.lookup_name_value = name_value;
+    result.lookup_name_column = name_column;
+
+    return result;
 }
 
 module.exports.setup = setup;

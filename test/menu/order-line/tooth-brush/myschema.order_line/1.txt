@@ -1,0 +1,2 @@
+order_id   from myschema.order#1
+product_id where prod_name is Tooth Brush
