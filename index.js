@@ -115,7 +115,7 @@ function interpret_record_line(source_file, line) {
 
         }
     } else {
-        const parts = line.replace(/ +/g, ' ').split(' ');
+        const parts = line.replace(/[ \t]+/g, ' ').split(' ');
 
         if (parts.length > 4 && parts[1] == 'where' && parts[3] == 'is') {
             if (parts[0].indexOf('_id') != -1) {
